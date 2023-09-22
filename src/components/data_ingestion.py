@@ -1,17 +1,21 @@
 import os
 import sys
+
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.exception import CustomException
 from src.logger import logging
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
+
 from src.components.data_transformation import DataTransformation
 from src.components.data_transformation import DataTransformationConfig
 
+from src.components.model_trainer import ModelTrainerConfig
+from src.components.model_trainer import ModelTrainer
 @dataclass
-#save all the files in this path
-#inputs given to the data ingestion and now the data ingestion knows what input is given and where to store it
 class DataIngestionConfig:
     train_data_path: str=os.path.join('artifacts',"train.csv")
     test_data_path: str=os.path.join('artifacts',"test.csv")
@@ -20,8 +24,7 @@ class DataIngestionConfig:
 class DataIngestion:
     def __init__(self):
         self.ingestion_config=DataIngestionConfig()
-    
-    #read the data set
+
     def initiate_data_ingestion(self):
         logging.info("Entered the data ingestion method or component")
         try:
@@ -39,7 +42,7 @@ class DataIngestion:
 
             test_set.to_csv(self.ingestion_config.test_data_path,index=False,header=True)
 
-            logging.info("Ingestion of the data iss completed")
+            logging.info("Inmgestion of the data iss completed")
 
             return(
                 self.ingestion_config.train_data_path,
@@ -49,9 +52,12 @@ class DataIngestion:
         except Exception as e:
             raise CustomException(e,sys)
         
-if __name__ == '__main__':
-    obj = DataIngestion()
-    train_data,test_data = obj.initiate_data_ingestion()
-    
-    data_transformation = DataTransformation()
-    data_transformation.initiate_data_transformation(train_data, test_data)
+if __name__=="__main__":
+    obj=DataIngestion()
+    train_data,test_data=obj.initiate_data_ingestion()
+
+    data_transformation=DataTransformation()
+    train_arr,test_arr,_=data_transformation.initiate_data_transformation(train_data,test_data)
+
+    modeltrainer=ModelTrainer()
+    print(modeltrainer.initiate_model_trainer(train_arr,test_arr))
